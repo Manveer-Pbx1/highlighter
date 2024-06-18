@@ -2,8 +2,10 @@ console.log("Content script is running.");
 
 const container = document.createElement('div');
 container.style.position = 'fixed';
+container.style.maxWidth = '300px';
+container.style.minWidth = '300px';
 container.style.top = '10px';
-container.style.right = '42vw';
+container.style.right = '40vw';
 container.style.padding = '10px';
 container.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
 container.style.border = '1px solid #ccc';
@@ -13,6 +15,7 @@ container.style.borderRadius = '5px';
 container.style.display = 'flex';
 container.style.alignItems = 'center';
 container.style.backdropFilter = 'blur(10px)';
+container.style.cursor = 'move'; 
 
 const highlightColorInput = document.createElement('input');
 highlightColorInput.type = 'color';
@@ -28,23 +31,19 @@ eraser.addEventListener('click', () => {
 
 const clearBtn = document.createElement('button');
 clearBtn.textContent = 'Clear';
+clearBtn.style.marginRight = '10px';
 
 const closeBtn = document.createElement('button');
-closeBtn.textContent = 'x';
-closeBtn.style.height = '18px';
-closeBtn.style.width = '18px';
-closeBtn.style.border = 'none';
-closeBtn.style.position = 'relative';
-closeBtn.style.right = '-10px';
-closeBtn.style.top = '-10px';
-closeBtn.style.cursor = 'pointer';
-closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+closeBtn.textContent = 'Close';
+closeBtn.style.marginLeft = 'auto'; 
 
 container.appendChild(highlightColorInput);
 container.appendChild(eraser);
 container.appendChild(clearBtn);
 container.appendChild(closeBtn);
 document.body.appendChild(container);
+
+console.log("Container added to the page.");
 
 
 function highlightSelection(color) {
@@ -55,8 +54,10 @@ function highlightSelection(color) {
         highlightedText.style.backgroundColor = color;
         range.surroundContents(highlightedText);
         saveHighlights();
+        console.log("Text highlighted.");
     }
 }
+
 
 function saveHighlights() {
     const highlights = [];
@@ -68,7 +69,9 @@ function saveHighlights() {
         });
     });
     localStorage.setItem('highlights', JSON.stringify(highlights));
+    console.log("Highlights saved.");
 }
+
 
 function loadHighlights() {
     const highlights = JSON.parse(localStorage.getItem('highlights') || '[]');
@@ -81,11 +84,9 @@ function loadHighlights() {
             parent.innerHTML = parent.innerHTML.replace(item.text, highlightedText.outerHTML);
         }
     });
+    console.log("Highlights loaded.");
 }
 
-closeBtn.addEventListener('click', function () {
-    document.body.removeChild(container);
-});
 
 function getXPath(element) {
     if (element.id !== '') return 'id("' + element.id + '")';
@@ -100,9 +101,11 @@ function getXPath(element) {
     }
 }
 
+
 function getElementByXPath(path) {
     return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
+
 
 document.addEventListener('mouseup', function () {
     const selectedText = window.getSelection().toString().trim();
@@ -124,6 +127,37 @@ clearBtn.addEventListener('click', function () {
         parent.normalize();
     });
     localStorage.removeItem('highlights');
+    console.log("Highlights cleared.");
 });
+
+closeBtn.addEventListener('click', function () {
+    console.log("Close button clicked.");
+    document.body.removeChild(container);
+    console.log("Container closed.");
+});
+
+
+let isDragging = false;
+let offsetX, offsetY;
+
+container.addEventListener('mousedown', function (e) {
+    isDragging = true;
+    offsetX = e.clientX - container.getBoundingClientRect().left;
+    offsetY = e.clientY - container.getBoundingClientRect().top;
+    container.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mousemove', function (e) {
+    if (isDragging) {
+        container.style.left = e.clientX - offsetX + 'px';
+        container.style.top = e.clientY - offsetY + 'px';
+    }
+});
+
+document.addEventListener('mouseup', function () {
+    isDragging = false;
+    container.style.cursor = 'move';
+});
+
 
 window.addEventListener('load', loadHighlights);
