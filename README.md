@@ -1,7 +1,10 @@
 # Installation:
 
-Install the Highlighter extension from the Chrome Web Store or as an unpacked extension in Chrome.
-Highlight Text:
+- Copy the contents of this repo and store them on a folder.
+- Go to the extensions tab in chrome
+- Enable developer mode
+- Click on "Load unpacked"
+- Select the folder 
 
 ## How to use
 
